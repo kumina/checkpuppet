@@ -10,7 +10,7 @@ PID=/var/run/puppet/puppetd.pid
 STATE=/var/lib/puppet/state/state.yaml
 # If we have a pidfile, get the pid
 if [ -f $PID ]; then
-	PUPPETPID=`cat $PID` 
+	PUPPETPID=`cat $PID`
 else
 	PUPPETPID=1
 fi
@@ -40,7 +40,7 @@ MAXSTOPTIME=60
 MAXSTATE=360
 # Load custom timers
 if [ -f /etc/default/checkpuppet ]; then
-	source /etc/default/checkpuppet
+	. /etc/default/checkpuppet
 fi
 # Set to true to enable debug output
 DEBUG=true
@@ -54,13 +54,12 @@ START=false
 if $DEBUG; then
 	echo --- Original situation ---
 	echo Running puppets:
-	PIDS=`ps ax | grep -v grep | grep puppetd | awk '{print $1}'`
-	for APID in $PIDS; do echo $APID; done
-	if [ $PUPPETPID == 1 ]; then echo PID = none; else echo PID = $PUPPETPID; fi
-	if [ $LOCKPID == 1 ]; then echo LOCK = none; else echo LOCK = $LOCKPID; fi
+	pgrep puppetd
+	if [ $PUPPETPID = 1 ]; then echo PID = none; else echo PID = $PUPPETPID; fi
+	if [ $LOCKPID = 1 ]; then echo LOCK = none; else echo LOCK = $LOCKPID; fi
 	if [ -f $DONTRUN ]; then echo DONTRUN exists; else echo DONTRUN doesn\'t exist; fi
 	if [ -f $RELOAD ]; then echo RELOAD exists; else echo RELOAD doesn\'t exist; fi
-	if [ "$1" == "enable" -o "$1" == "disable" ]; then
+	if [ "$1" = "enable" -o "$1" = "disable" ]; then
 		echo Command
 		echo $1
 	fi
@@ -71,18 +70,17 @@ fi
 ### remove the $PID or $LOCK
 PIDVALID=false
 LOCKVALID=false
-PIDS=`ps ax | grep -v grep | grep puppetd | awk '{print $1}'`
-for APID in $PIDS; do
+for APID in `pgrep puppetd`; do
 	if $DEBUG; then echo -n "Checking PID/LOCK association of $APID: "; fi
 	if `ps $APID | grep -q puppetd`; then
-		if [ $APID == $PUPPETPID ] && [ $APID == $LOCKPID ]; then
+		if [ $APID = $PUPPETPID -a $APID = $LOCKPID ]; then
 			PIDVALID=true
 			LOCKVALID=true
 			if $DEBUG; then echo $APID is in the PID and LOCK files; fi
-		elif [ $APID == $PUPPETPID ]; then
+		elif [ $APID = $PUPPETPID ]; then
 			PIDVALID=true
 			if $DEBUG; then echo $APID is in the PID file; fi
-		elif [ $APID == $LOCKPID ]; then
+		elif [ $APID = $LOCKPID ]; then
 			LOCKVALID=true
 			if $DEBUG; then echo $APID is in the LOCK file; fi
 		elif $DEBUG; then
@@ -101,7 +99,7 @@ fi
 
 ### Set the actions that are to be performed and perform actions on semaphores
 # If $1 is "enable" remove the $DONTRUN
-if [ "$1" == "enable" ]; then
+if [ "$1" = "enable" ]; then
 	if $DEBUG; then echo Enable command received; fi
 	if [ -f $DONTRUN ]; then
 		if $DEBUG; then echo $DONTRUN found; fi
@@ -109,7 +107,7 @@ if [ "$1" == "enable" ]; then
 		if $DEBUG; then echo Removed $DONTRUN due to enable command; fi
 	fi
 # If $1 is "disable" create the $DONTRUN
-elif [ "$1" == "disable" ]; then
+elif [ "$1" = "disable" ]; then
 	if $DEBUG; then echo Disable command received; fi
 	if [ ! -f $DONTRUN ]; then
 		if $DEBUG; then echo No $DONTRUN found; fi
@@ -188,8 +186,7 @@ if [ -f $LOCK ] && `$RMLOCK`; then
 	LOCKPID=1
 fi
 # Kill all puppetds that are not in the $PID or $LOCK file
-PIDS=`ps ax | grep -v grep | grep puppetd | awk '{print $1}'`
-for APID in $PIDS; do
+for APID in `pgrep puppetd`; do
 	if $DEBUG; then echo -n "Checking process $APID for validity: "; fi
 	if [ $APID != $PUPPETPID -a $APID != $LOCKPID ]; then
 		echo Killing $APID as it is not associated with a pid or lock file.
@@ -213,17 +210,16 @@ if [ -f $RELOAD ]; then
 fi
 if $DEBUG; then
 	if [ -f $PID ]; then
-		PUPPETPID=`cat $PID` 
+		PUPPETPID=`cat $PID`
 	fi
 	if [ -f $LOCK ]; then
 		LOCKPID=`cat $LOCK`
 	fi
 	echo --- New situation ---
 	echo Running puppets:
-	PIDS=`ps ax | grep -v grep | grep puppetd | awk '{print $1}'`
-	for APID in $PIDS; do echo $APID; done
-	if [ $PUPPETPID == 1 ]; then echo PID = none; else echo PID = $PUPPETPID; fi
-	if [ $LOCKPID == 1 ]; then echo LOCK = none; else echo LOCK = $LOCKPID; fi
+	pgrep puppetd
+	if [ $PUPPETPID = 1 ]; then echo PID = none; else echo PID = $PUPPETPID; fi
+	if [ $LOCKPID = 1 ]; then echo LOCK = none; else echo LOCK = $LOCKPID; fi
 	if [ -f $DONTRUN ]; then echo DONTRUN exists; else echo DONTRUN doesn\'t exist; fi
 	if [ -f $RELOAD ]; then echo RELOAD exists; else echo RELOAD doesn\'t exist; fi
 fi
