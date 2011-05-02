@@ -83,7 +83,7 @@ for APID in `pgrep puppetd`; do
 			LOCKVALID=true
 			$DEBUG echo $APID is in the LOCK file
 		else
-			$DEBUG echo $APID has no association;
+			$DEBUG echo $APID has no association
 		fi
 	fi
 done
