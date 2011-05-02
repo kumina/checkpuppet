@@ -1,4 +1,5 @@
 #!/bin/sh
+
 ### Paths
 # The path of puppet
 PUPPETPATH=/etc/init.d
@@ -54,7 +55,7 @@ START=false
 if $DEBUG; then
 	echo --- Original situation ---
 	echo Running puppets:
-	pgrep puppetd
+	pgrep puppetd || echo "none running"
 	if [ $PUPPETPID = 1 ]; then echo PID = none; else echo PID = $PUPPETPID; fi
 	if [ $LOCKPID = 1 ]; then echo LOCK = none; else echo LOCK = $LOCKPID; fi
 	if [ -f $DONTRUN ]; then echo DONTRUN exists; else echo DONTRUN doesn\'t exist; fi
@@ -217,7 +218,7 @@ if $DEBUG; then
 	fi
 	echo --- New situation ---
 	echo Running puppets:
-	pgrep puppetd
+	pgrep puppetd || echo "none running"
 	if [ $PUPPETPID = 1 ]; then echo PID = none; else echo PID = $PUPPETPID; fi
 	if [ $LOCKPID = 1 ]; then echo LOCK = none; else echo LOCK = $LOCKPID; fi
 	if [ -f $DONTRUN ]; then echo DONTRUN exists; else echo DONTRUN doesn\'t exist; fi
