@@ -41,8 +41,8 @@ MAXSTATE=360
 if [ -f /etc/default/checkpuppet ]; then
 	. /etc/default/checkpuppet
 fi
-# Set to true to enable debug output
-DEBUG=true
+# Set to empty to enable debug output, : otherwise
+DEBUG=
 # Set to true to remove $LOCK
 RMLOCK=false
 # Set to true to remove $PID
@@ -50,7 +50,7 @@ RMPID=false
 # Set to true to start a new puppet
 START=false
 
-if $DEBUG; then
+if [ "$DEBUG" = '' ]; then
 	echo --- Original situation ---
 	echo Running puppets:
 	pgrep puppetd || echo "none running"
@@ -70,48 +70,48 @@ fi
 PIDVALID=false
 LOCKVALID=false
 for APID in `pgrep puppetd`; do
-	if $DEBUG; then echo -n "Checking PID/LOCK association of $APID: "; fi
+	$DEBUG echo -n "Checking PID/LOCK association of $APID: "
 	if `ps $APID | grep -q puppetd`; then
 		if [ $APID = $PUPPETPID -a $APID = $LOCKPID ]; then
 			PIDVALID=true
 			LOCKVALID=true
-			if $DEBUG; then echo $APID is in the PID and LOCK files; fi
+			$DEBUG echo $APID is in the PID and LOCK files
 		elif [ $APID = $PUPPETPID ]; then
 			PIDVALID=true
-			if $DEBUG; then echo $APID is in the PID file; fi
+			$DEBUG echo $APID is in the PID file
 		elif [ $APID = $LOCKPID ]; then
 			LOCKVALID=true
-			if $DEBUG; then echo $APID is in the LOCK file; fi
-		elif $DEBUG; then
-			echo $APID has no association;
+			$DEBUG echo $APID is in the LOCK file
+		else
+			$DEBUG echo $APID has no association;
 		fi
 	fi
 done
 if ! `$PIDVALID` && [ -f $PID ]; then
 	rm $PID
-	if $DEBUG; then echo Removed PID as it has no associated process; fi
+	$DEBUG echo Removed PID as it has no associated process
 fi
 if ! `$LOCKVALID` && [ -f $LOCK ]; then
 	rm $LOCK
-	if $DEBUG; then echo Removed LOCK as it has no associated process; fi
+	$DEBUG echo Removed LOCK as it has no associated process
 fi
 
 ### Set the actions that are to be performed and perform actions on semaphores
 # If $1 is "enable" remove the $DONTRUN
 if [ "$1" = "enable" ]; then
-	if $DEBUG; then echo Enable command received; fi
+	$DEBUG echo Enable command received
 	if [ -f $DONTRUN ]; then
-		if $DEBUG; then echo $DONTRUN found; fi
+		$DEBUG echo $DONTRUN found
 		rm $DONTRUN
-		if $DEBUG; then echo Removed $DONTRUN due to enable command; fi
+		$DEBUG echo Removed $DONTRUN due to enable command
 	fi
 # If $1 is "disable" create the $DONTRUN
 elif [ "$1" = "disable" ]; then
-	if $DEBUG; then echo Disable command received; fi
+	$DEBUG echo Disable command received
 	if [ ! -f $DONTRUN ]; then
-		if $DEBUG; then echo No $DONTRUN found; fi
+		$DEBUG echo No $DONTRUN found
 		touch $DONTRUN
-		if $DEBUG; then echo Created $DONTRUN due to disable command; fi
+		$DEBUG echo Created $DONTRUN due to disable command
 	fi
 fi
 # If the statefile is too old remove the $PID and start a new puppet, if this hasn't been done before
@@ -120,82 +120,84 @@ if [ -f $STATE ] && `find $STATE -mmin +$MAXSTATE | grep -q $STATE`; then
 		RMPID=true
 		START=true
 		touch $OLDSTATE
-		if $DEBUG; then echo $STATE is older than $MAXSTATE, PID removal and restart scheduled; fi
-	elif $DEBUG; then echo $STATE is older than $MAXSTATE, but $OLDSTATE exists;
+		$DEBUG echo $STATE is older than $MAXSTATE, PID removal and restart scheduled
+	else
+		$DEBUG echo $STATE is older than $MAXSTATE, but $OLDSTATE exists
 	fi
 elif [ -f $OLDSTATE ]; then
 	rm $OLDSTATE
-	if $DEBUG; then echo $STATE is not older than $MAXSTATE, removed $OLDSTATE; fi
+	$DEBUG echo $STATE is not older than $MAXSTATE, removed $OLDSTATE
 fi
 # If $DONTRUN exists remove the $PID
 if [ -f $DONTRUN ]; then
 	RMPID=true
-	if $DEBUG; then echo $DONTRUN found, PID removal scheduled; fi
+	$DEBUG echo $DONTRUN found, PID removal scheduled
 	# If $LOCK expired remove it
 	if [ -f $LOCK ] && `find $LOCK -mmin +$MAXLOCK | grep -q $LOCK`; then
 		RMLOCK=true
-		if $DEBUG; then echo $LOCK is older than $MAXLOCK, lock removal scheduled; fi
+		$DEBUG echo $LOCK is older than $MAXLOCK, lock removal scheduled
 	fi
 # If $LOCK expired remove everything and restart
 elif [ -f $LOCK ] && `find $LOCK -mmin +$MAXLOCK | grep -q $LOCK`; then
 	RMLOCK=true
 	RMPID=true
 	START=true
-	if $DEBUG; then echo $LOCK is older than $MAXLOCK, lock and PID removal and restart scheduled; fi
+	$DEBUG echo $LOCK is older than $MAXLOCK, lock and PID removal and restart scheduled
 # If $RELOAD exists remove the $PID and start a new puppet
 elif [ -f $RELOAD ]; then
 	RMPID=true
 	START=true
-	if $DEBUG; then echo $RELOAD found, PID removal and restart scheduled; fi
+	$DEBUG echo $RELOAD found, PID removal and restart scheduled
 # If $PID doesn't exist start a new puppet
 elif [ ! -f $PID ]; then
 	START=true
-	if $DEBUG; then echo No $PID found, restart scheduled; fi
+	$DEBUG echo No $PID found, restart scheduled
 fi
 
 ### Performs the needed actions
 # Set the value of START in the defaults file
 if [ -f $DONTRUN ]; then
-	if $DEBUG; then echo $DONTRUN found, START in $DEFAULTS should be no; fi
+	$DEBUG echo $DONTRUN found, START in $DEFAULTS should be no
 	sed -i 's/^START=yes$/START=no/' $DEFAULTS
 	if ! grep -q '^START=no$' $DEFAULTS; then
-		if $DEBUG; then echo No START found, adding to $DEFAULTS; fi
+		$DEBUG echo No START found, adding to $DEFAULTS
 		echo "# Start puppet on boot?" >> $DEFAULTS
 		echo "START=no" >> $DEFAULTS
 	fi
 else
-	if $DEBUG; then echo No $DONTRUN found, START in $DEFAULTS should be yes; fi
+	$DEBUG echo No $DONTRUN found, START in $DEFAULTS should be yes
 	sed -i 's/^START=no$/START=yes/' $DEFAULTS
 	if ! grep -q '^START=yes$' $DEFAULTS; then
-		if $DEBUG; then echo No START found, adding it to $DEFAULTS; fi
+		$DEBUG echo No START found, adding it to $DEFAULTS
 		echo "# Start puppet on boot?" >> $DEFAULTS
 		echo "START=yes" >> $DEFAULTS
 	fi
 fi
 # Remove the $PID if needed
 if [ -f $PID ] && `$RMPID`; then
-	if $DEBUG; then echo $PID exists and removal is scheduled, deleting $PID; fi
+	$DEBUG echo $PID exists and removal is scheduled, deleting $PID
 	rm $PID
 	PUPPETPID=1
 fi
 # Remove the $LOCK if needed
 if [ -f $LOCK ] && `$RMLOCK`; then
-	if $DEBUG; then echo $LOCK exists and removal is scheduled, deleting $LOCK; fi
+	$DEBUG echo $LOCK exists and removal is scheduled, deleting $LOCK
 	rm $LOCK
 	LOCKPID=1
 fi
 # Kill all puppetds that are not in the $PID or $LOCK file
 for APID in `pgrep puppetd`; do
-	if $DEBUG; then echo -n "Checking process $APID for validity: "; fi
+	$DEBUG echo -n "Checking process $APID for validity: "
 	if [ $APID != $PUPPETPID -a $APID != $LOCKPID ]; then
 		echo Killing $APID as it is not associated with a pid or lock file.
 		kill -9 $APID
-	else if $DEBUG; then echo $APID is valid; fi
+	else
+		$DEBUG echo $APID is valid
 	fi
 done
 # Start puppet if needed
 if `$START`; then
-	if $DEBUG; then echo Start scheduled, restarting puppet; fi
+	$DEBUG echo Start scheduled, restarting puppet
 	# If the restart was not scheduled it should trigger an email
 	if [ ! -f $RELOAD ]; then
 		echo "Restarting puppet on "`hostname -f`"!!"
@@ -204,10 +206,10 @@ if `$START`; then
 fi
 # Remove $RELOAD if it exists
 if [ -f $RELOAD ]; then
-	if $DEBUG; then echo $RELOAD found, removing it; fi
+	$DEBUG echo $RELOAD found, removing it
 	rm $RELOAD
 fi
-if $DEBUG; then
+if [ "$DEBUG" = '' ]; then
 	if [ -f $PID ]; then
 		PUPPETPID=`cat $PID`
 	fi
