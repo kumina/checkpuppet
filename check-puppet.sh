@@ -1,8 +1,6 @@
 #!/bin/sh
 
 ### Paths
-# The path of puppet
-PUPPETPATH=/etc/init.d
 # The path of the defaults file
 DEFAULTS=/etc/default/puppet
 # The puppetd pid file
@@ -202,7 +200,7 @@ if `$START`; then
 	if [ ! -f $RELOAD ]; then
 		echo "Restarting puppet on "`hostname -f`"!!"
 	fi
-	$PUPPETPATH/puppet restart
+	service puppet restart
 fi
 # Remove $RELOAD if it exists
 if [ -f $RELOAD ]; then
