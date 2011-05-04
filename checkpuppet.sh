@@ -189,10 +189,7 @@ if $START; then
 	/etc/init.d/puppet restart
 fi
 # Remove $RELOAD if it exists
-if [ -f $RELOAD ]; then
-	$DEBUG echo $RELOAD found, removing it
-	rm -f $RELOAD
-fi
+rm -f $RELOAD
 if [ "$DEBUG" = '' ]; then
 	if [ -f $PID ]; then
 		PUPPETPID=`cat $PID`
