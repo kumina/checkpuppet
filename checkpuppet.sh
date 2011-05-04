@@ -4,7 +4,7 @@
 # The path of the defaults file
 DEFAULTS=/etc/default/puppet
 # The puppetd pid file
-PID=/var/run/puppet/puppetd.pid
+PID=/var/run/puppet/agent.pid
 # The state file
 STATE=/var/lib/puppet/state/state.yaml
 # If we have a pidfile, get the pid
@@ -28,8 +28,6 @@ RELOAD=/etc/puppet/reloadpuppetd
 # Created when puppet is restarted due to an old state file and removed when it isn't
 # old anymore
 OLDSTATE=/etc/puppet/oldstate
-# Command name
-CMDNAME=puppetd
 
 ### Set timers and default actions
 # The maximum time (in minutes) a lock file is allowed to exist, if the lock
@@ -55,7 +53,7 @@ START=false
 if [ "$DEBUG" = '' ]; then
 	echo --- Original situation ---
 	echo Running puppets:
-	pgrep $CMDNAME || echo "none running"
+	pgrep puppet || echo "none running"
 	if [ $PUPPETPID = 1 ]; then echo PID = none; else echo PID = $PUPPETPID; fi
 	if [ $LOCKPID = 1 ]; then echo LOCK = none; else echo LOCK = $LOCKPID; fi
 	if [ -f $DONTRUN ]; then echo DONTRUN exists; else echo DONTRUN doesn\'t exist; fi
@@ -67,35 +65,16 @@ if [ "$DEBUG" = '' ]; then
 	echo --- Script output ---
 fi
 	
-### Check if the processes in $PID and $LOCK are still valid and if not
-### remove the $PID or $LOCK
-PIDVALID=false
-LOCKVALID=false
-for APID in `pgrep $CMDNAME`; do
-	$DEBUG echo -n "Checking PID/LOCK association of $APID: "
-	if ps -o command $APID | grep -q $CMDNAME; then
-		if [ $APID = $PUPPETPID -a $APID = $LOCKPID ]; then
-			PIDVALID=true
-			LOCKVALID=true
-			$DEBUG echo $APID is in the PID and LOCK files
-		elif [ $APID = $PUPPETPID ]; then
-			PIDVALID=true
-			$DEBUG echo $APID is in the PID file
-		elif [ $APID = $LOCKPID ]; then
-			LOCKVALID=true
-			$DEBUG echo $APID is in the LOCK file
-		else
-			$DEBUG echo $APID has no association
-		fi
-	fi
-done
-if ! $PIDVALID && [ -f $PID ]; then
-	rm $PID
+### Remove stale PID files
+if ! kill -s 0 $PUPPETPID
+then
 	$DEBUG echo Removed PID as it has no associated process
+	rm -f $PID
 fi
-if ! $LOCKVALID && [ -f $LOCK ]; then
-	rm $LOCK
+if ! kill -s 0 $LOCKPID
+then
 	$DEBUG echo Removed LOCK as it has no associated process
+	rm -f $LOCK
 fi
 
 ### Set the actions that are to be performed and perform actions on semaphores
@@ -104,7 +83,7 @@ if [ "$1" = "enable" ]; then
 	$DEBUG echo Enable command received
 	if [ -f $DONTRUN ]; then
 		$DEBUG echo $DONTRUN found
-		rm $DONTRUN
+		rm -f $DONTRUN
 		$DEBUG echo Removed $DONTRUN due to enable command
 	fi
 # If $1 is "disable" create the $DONTRUN
@@ -127,7 +106,7 @@ if [ -f $STATE ] && find $STATE -mmin +$MAXSTATE | grep -q $STATE; then
 		$DEBUG echo $STATE is older than $MAXSTATE, but $OLDSTATE exists
 	fi
 elif [ -f $OLDSTATE ]; then
-	rm $OLDSTATE
+	rm -f $OLDSTATE
 	$DEBUG echo $STATE is not older than $MAXSTATE, removed $OLDSTATE
 fi
 # If $DONTRUN exists remove the $PID
@@ -156,39 +135,42 @@ elif [ ! -f $PID ]; then
 	$DEBUG echo No $PID found, restart scheduled
 fi
 
+setstart()
+{
+	$DEBUG echo Setting START in $DEFAULTS to $1
+	sed -i "s/^START=.*/START=$1/" $DEFAULTS
+	if ! grep -q '^START=' $DEFAULTS; then
+		$DEBUG echo No START found, adding to the file
+		cat >> $DEFAULTS << EOF
+# Start puppet on boot?
+START=$1
+EOF
+	fi
+}
+
 ### Performs the needed actions
 # Set the value of START in the defaults file
 if [ -f $DONTRUN ]; then
-	$DEBUG echo $DONTRUN found, START in $DEFAULTS should be no
-	sed -i 's/^START=yes$/START=no/' $DEFAULTS
-	if ! grep -q '^START=no$' $DEFAULTS; then
-		$DEBUG echo No START found, adding to $DEFAULTS
-		echo "# Start puppet on boot?" >> $DEFAULTS
-		echo "START=no" >> $DEFAULTS
-	fi
+	$DEBUG echo $DONTRUN found
+	setstart no
 else
 	$DEBUG echo No $DONTRUN found, START in $DEFAULTS should be yes
-	sed -i 's/^START=no$/START=yes/' $DEFAULTS
-	if ! grep -q '^START=yes$' $DEFAULTS; then
-		$DEBUG echo No START found, adding it to $DEFAULTS
-		echo "# Start puppet on boot?" >> $DEFAULTS
-		echo "START=yes" >> $DEFAULTS
-	fi
+	setstart yes
 fi
 # Remove the $PID if needed
 if [ -f $PID ] && $RMPID; then
 	$DEBUG echo $PID exists and removal is scheduled, deleting $PID
-	rm $PID
+	rm -f $PID
 	PUPPETPID=1
 fi
 # Remove the $LOCK if needed
 if [ -f $LOCK ] && $RMLOCK; then
 	$DEBUG echo $LOCK exists and removal is scheduled, deleting $LOCK
-	rm $LOCK
+	rm -f $LOCK
 	LOCKPID=1
 fi
 # Kill all puppetds that are not in the $PID or $LOCK file
-for APID in `pgrep $CMDNAME`; do
+for APID in `ps ax -o pid,command | awk '/puppet[ ]agent/ { print $1}'`; do
 	$DEBUG echo -n "Checking process $APID for validity: "
 	if [ $APID != $PUPPETPID -a $APID != $LOCKPID ]; then
 		echo Killing $APID as it is not associated with a pid or lock file.
@@ -204,12 +186,12 @@ if $START; then
 	if [ ! -f $RELOAD ]; then
 		echo "Restarting puppet on "`hostname -f`"!!"
 	fi
-	service puppet restart
+	/etc/init.d/puppet restart
 fi
 # Remove $RELOAD if it exists
 if [ -f $RELOAD ]; then
 	$DEBUG echo $RELOAD found, removing it
-	rm $RELOAD
+	rm -f $RELOAD
 fi
 if [ "$DEBUG" = '' ]; then
 	if [ -f $PID ]; then
@@ -220,7 +202,7 @@ if [ "$DEBUG" = '' ]; then
 	fi
 	echo --- New situation ---
 	echo Running puppets:
-	pgrep $CMDNAME || echo "none running"
+	pgrep puppet || echo "none running"
 	if [ $PUPPETPID = 1 ]; then echo PID = none; else echo PID = $PUPPETPID; fi
 	if [ $LOCKPID = 1 ]; then echo LOCK = none; else echo LOCK = $LOCKPID; fi
 	if [ -f $DONTRUN ]; then echo DONTRUN exists; else echo DONTRUN doesn\'t exist; fi
