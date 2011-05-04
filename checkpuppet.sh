@@ -73,7 +73,7 @@ PIDVALID=false
 LOCKVALID=false
 for APID in `pgrep $CMDNAME`; do
 	$DEBUG echo -n "Checking PID/LOCK association of $APID: "
-	if `ps -o $CMDNAME $APID | grep -q $CMDNAME`; then
+	if ps -o command $APID | grep -q $CMDNAME; then
 		if [ $APID = $PUPPETPID -a $APID = $LOCKPID ]; then
 			PIDVALID=true
 			LOCKVALID=true
@@ -117,7 +117,7 @@ elif [ "$1" = "disable" ]; then
 	fi
 fi
 # If the statefile is too old remove the $PID and start a new puppet, if this hasn't been done before
-if [ -f $STATE ] && `find $STATE -mmin +$MAXSTATE | grep -q $STATE`; then
+if [ -f $STATE ] && find $STATE -mmin +$MAXSTATE | grep -q $STATE; then
 	if [ ! -f $OLDSTATE ]; then
 		RMPID=true
 		START=true
@@ -140,7 +140,7 @@ if [ -f $DONTRUN ]; then
 		$DEBUG echo $LOCK is older than $MAXLOCK, lock removal scheduled
 	fi
 # If $LOCK expired remove everything and restart
-elif [ -f $LOCK ] && `find $LOCK -mmin +$MAXLOCK | grep -q $LOCK`; then
+elif [ -f $LOCK ] && find $LOCK -mmin +$MAXLOCK | grep -q $LOCK; then
 	RMLOCK=true
 	RMPID=true
 	START=true
