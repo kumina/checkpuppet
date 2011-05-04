@@ -1,0 +1,25 @@
+#!/usr/bin/make -f
+
+TARGET=${CURDIR}/debian/checkpuppet
+
+build:
+
+clean:
+	dh_testdir
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_installdirs /usr/bin /usr/share/doc/checkpuppet
+	install -m 755 checkpuppet.sh ${TARGET}/usr/bin/checkpuppet
+	install -m 644 debian/copyright ${TARGET}/usr/share/doc/checkpuppet
+	dh_installchangelogs
+	dh_compress
+
+binary: build install
+	dh_testdir -s
+	dh_gencontrol -s
+	dh_md5sums -s
+	dh_builddeb -s
+
+.PHONY: build clean install binary
