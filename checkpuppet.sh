@@ -89,11 +89,11 @@ for APID in `pgrep $CMDNAME`; do
 		fi
 	fi
 done
-if ! `$PIDVALID` && [ -f $PID ]; then
+if ! $PIDVALID && [ -f $PID ]; then
 	rm $PID
 	$DEBUG echo Removed PID as it has no associated process
 fi
-if ! `$LOCKVALID` && [ -f $LOCK ]; then
+if ! $LOCKVALID && [ -f $LOCK ]; then
 	rm $LOCK
 	$DEBUG echo Removed LOCK as it has no associated process
 fi
@@ -135,7 +135,7 @@ if [ -f $DONTRUN ]; then
 	RMPID=true
 	$DEBUG echo $DONTRUN found, PID removal scheduled
 	# If $LOCK expired remove it
-	if [ -f $LOCK ] && `find $LOCK -mmin +$MAXLOCK | grep -q $LOCK`; then
+	if [ -f $LOCK ] && find $LOCK -mmin +$MAXLOCK | grep -q $LOCK; then
 		RMLOCK=true
 		$DEBUG echo $LOCK is older than $MAXLOCK, lock removal scheduled
 	fi
@@ -176,13 +176,13 @@ else
 	fi
 fi
 # Remove the $PID if needed
-if [ -f $PID ] && `$RMPID`; then
+if [ -f $PID ] && $RMPID; then
 	$DEBUG echo $PID exists and removal is scheduled, deleting $PID
 	rm $PID
 	PUPPETPID=1
 fi
 # Remove the $LOCK if needed
-if [ -f $LOCK ] && `$RMLOCK`; then
+if [ -f $LOCK ] && $RMLOCK; then
 	$DEBUG echo $LOCK exists and removal is scheduled, deleting $LOCK
 	rm $LOCK
 	LOCKPID=1
@@ -198,7 +198,7 @@ for APID in `pgrep $CMDNAME`; do
 	fi
 done
 # Start puppet if needed
-if `$START`; then
+if $START; then
 	$DEBUG echo Start scheduled, restarting puppet
 	# If the restart was not scheduled it should trigger an email
 	if [ ! -f $RELOAD ]; then
