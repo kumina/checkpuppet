@@ -28,6 +28,8 @@ RELOAD=/etc/puppet/reloadpuppetd
 # Created when puppet is restarted due to an old state file and removed when it isn't
 # old anymore
 OLDSTATE=/etc/puppet/oldstate
+# Command name
+CMDNAME=puppetd
 
 ### Set timers and default actions
 # The maximum time (in minutes) a lock file is allowed to exist, if the lock
@@ -53,7 +55,7 @@ START=false
 if [ "$DEBUG" = '' ]; then
 	echo --- Original situation ---
 	echo Running puppets:
-	pgrep puppetd || echo "none running"
+	pgrep $CMDNAME || echo "none running"
 	if [ $PUPPETPID = 1 ]; then echo PID = none; else echo PID = $PUPPETPID; fi
 	if [ $LOCKPID = 1 ]; then echo LOCK = none; else echo LOCK = $LOCKPID; fi
 	if [ -f $DONTRUN ]; then echo DONTRUN exists; else echo DONTRUN doesn\'t exist; fi
@@ -69,9 +71,9 @@ fi
 ### remove the $PID or $LOCK
 PIDVALID=false
 LOCKVALID=false
-for APID in `pgrep puppetd`; do
+for APID in `pgrep $CMDNAME`; do
 	$DEBUG echo -n "Checking PID/LOCK association of $APID: "
-	if `ps $APID | grep -q puppetd`; then
+	if `ps -o $CMDNAME $APID | grep -q $CMDNAME`; then
 		if [ $APID = $PUPPETPID -a $APID = $LOCKPID ]; then
 			PIDVALID=true
 			LOCKVALID=true
@@ -186,7 +188,7 @@ if [ -f $LOCK ] && `$RMLOCK`; then
 	LOCKPID=1
 fi
 # Kill all puppetds that are not in the $PID or $LOCK file
-for APID in `pgrep puppetd`; do
+for APID in `pgrep $CMDNAME`; do
 	$DEBUG echo -n "Checking process $APID for validity: "
 	if [ $APID != $PUPPETPID -a $APID != $LOCKPID ]; then
 		echo Killing $APID as it is not associated with a pid or lock file.
@@ -218,7 +220,7 @@ if [ "$DEBUG" = '' ]; then
 	fi
 	echo --- New situation ---
 	echo Running puppets:
-	pgrep puppetd || echo "none running"
+	pgrep $CMDNAME || echo "none running"
 	if [ $PUPPETPID = 1 ]; then echo PID = none; else echo PID = $PUPPETPID; fi
 	if [ $LOCKPID = 1 ]; then echo LOCK = none; else echo LOCK = $LOCKPID; fi
 	if [ -f $DONTRUN ]; then echo DONTRUN exists; else echo DONTRUN doesn\'t exist; fi
