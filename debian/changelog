@@ -1,3 +1,9 @@
+checkpuppet (1.0-1KUMIRELEASE5) unstable; urgency=low
+
+  * Also match puppetd processes.
+
+ -- Ed Schouten <ed@kumina.nl>  Wed, 11 May 2011 15:10:30 +0200
+
 checkpuppet (1.0-1KUMIRELEASE4) unstable; urgency=low
 
   * Add cron entry.
