@@ -42,7 +42,9 @@ if [ -f /etc/default/checkpuppet ]; then
 	. /etc/default/checkpuppet
 fi
 # Set to empty to enable debug output, : otherwise
-DEBUG=
+DEBUG=:
+# Don't print these messages when reloading
+NORELOAD=
 # Set to true to remove $PUPPETFILE
 RMPUPPET=false
 # Set to true to remove $LOCKFILE
@@ -125,6 +127,8 @@ elif [ -f $LOCK ] && find $LOCK -mmin +$MAXLOCK | fgrep -q $LOCKFILE; then
 elif [ -f $RELOAD ]; then
 	RMPUPPET=true
 	START=true
+	NORELOAD=:
+	rm -f $RELOAD
 	$DEBUG echo $RELOAD found, PID removal and restart scheduled
 # If $PID doesn't exist start a new puppet
 elif [ ! -f $PUPPETFILE ]; then
@@ -170,7 +174,7 @@ fi
 for p in `ps ax -o pid,command | awk '/puppet[ ]agent/ { print $1 }'`; do
 	$DEBUG echo -n "Checking process $p for validity: "
 	if [ $p != $PUPPETPID -a $p != $LOCKPID ]; then
-		echo Killing $p as it is not associated with a pid or lock file.
+		$NORELOAD echo Killing $p as it is not associated with a pid or lock file.
 		kill -9 $p
 	else
 		$DEBUG echo $p is valid
@@ -180,12 +184,13 @@ done
 if $START; then
 	$DEBUG echo Start scheduled, restarting puppet
 	# If the restart was not scheduled it should trigger an email
-	if [ ! -f $RELOAD ]; then
-		echo "Restarting puppet on `hostname -f`!!"
+	$NORELOAD echo "Restarting puppet on `hostname -f`!!"
+	if [ $NORELOAD = '' ]
+	then
+		/etc/init.d/puppet restart
+	else
+		/etc/init.d/puppet restart > /dev/null
 	fi
-	/etc/init.d/puppet restart
 fi
-# Remove $RELOAD if it exists
-rm -f $RELOAD
 
 dumpdebug
