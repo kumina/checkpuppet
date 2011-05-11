@@ -64,8 +64,8 @@ dumpdebug() {
 	echo --- Begin debug output ---
 	echo Running puppets:
 	pgrep puppet || echo "none running"
-	if [ $PUPPETPID = 1 ]; then echo PUPPETPID = none; else echo PUPPETPID = $PUPPETPID; fi
-	if [ $LOCKPID = 1 ]; then echo LOCKPID = none; else echo LOCKPID = $LOCKPID; fi
+	if [ "$PUPPETPID" = 1 ]; then echo PUPPETPID = none; else echo PUPPETPID = $PUPPETPID; fi
+	if [ "$LOCKPID" = 1 ]; then echo LOCKPID = none; else echo LOCKPID = $LOCKPID; fi
 	if [ -f $DONTRUN ]; then echo DONTRUN exists; else echo DONTRUN doesn\'t exist; fi
 	if [ -f $RELOAD ]; then echo RELOAD exists; else echo RELOAD doesn\'t exist; fi
 	echo --- End debug output ---
@@ -112,17 +112,17 @@ fi
 if [ -f $DONTRUN ]; then
 	RMPUPPET=true
 	$DEBUG echo $DONTRUN found, PID removal scheduled
-	# If $LOCK expired remove it
-	if [ -f $LOCK ] && find $LOCK -mmin +$MAXLOCK | fgrep -q $LOCKFILE; then
+	# If $LOCKFILE expired remove it
+	if [ -f $LOCKFILE ] && find $LOCKFILE -mmin +$MAXLOCK | fgrep -q $LOCKFILE; then
 		RMLOCK=true
-		$DEBUG echo $LOCK is older than $MAXLOCK, lock removal scheduled
+		$DEBUG echo $LOCKFILE is older than $MAXLOCK, lock removal scheduled
 	fi
-# If $LOCK expired remove everything and restart
-elif [ -f $LOCK ] && find $LOCK -mmin +$MAXLOCK | fgrep -q $LOCKFILE; then
+# If $LOCKFILE expired remove everything and restart
+elif [ -f $LOCKFILE ] && find $LOCKFILE -mmin +$MAXLOCK | fgrep -q $LOCKFILE; then
 	RMPUPPET=true
 	RMLOCK=true
 	START=true
-	$DEBUG echo $LOCK is older than $MAXLOCK, lock and PID removal and restart scheduled
+	$DEBUG echo $LOCKFILE is older than $MAXLOCK, lock and PID removal and restart scheduled
 # If $RELOAD exists remove the $PID and start a new puppet
 elif [ -f $RELOAD ]; then
 	RMPUPPET=true
@@ -162,18 +162,18 @@ fi
 if $RMPUPPET; then
 	$DEBUG echo $PUPPETFILE removal is scheduled, deleting $PUPPETFILE
 	rm -f $PUPPETFILE
-	PUPPETPID=0
+	PUPPETPID=1
 fi
 # Remove the $LOCKFILE if needed
 if $RMLOCK; then
 	$DEBUG echo $LOCKFILE removal is scheduled, deleting $LOCKFILE
 	rm -f $LOCKFILE
-	LOCKPID=0
+	LOCKPID=1
 fi
 # Kill all puppetds that are not in the $PID or $LOCK file
 for p in `ps ax -o pid,command | awk '/puppet[ ]agent/ { print $1 }'`; do
 	$DEBUG echo -n "Checking process $p for validity: "
-	if [ $p != $PUPPETPID -a $p != $LOCKPID ]; then
+	if [ $p != "$PUPPETPID" -a $p != "$LOCKPID" ]; then
 		$NORELOAD echo Killing $p as it is not associated with a pid or lock file.
 		$NORELOAD ps up $p
 		kill -9 $p
@@ -186,7 +186,8 @@ if $START; then
 	$DEBUG echo Start scheduled, restarting puppet
 	# If the restart was not scheduled it should trigger an email
 	$NORELOAD echo "Restarting puppet on `hostname -f`!!"
-	if [ "$NORELOAD" = '' ]; then
+	if [ "$NORELOAD" = '' ]
+	then
 		/etc/init.d/puppet restart
 	else
 		/etc/init.d/puppet restart > /dev/null
