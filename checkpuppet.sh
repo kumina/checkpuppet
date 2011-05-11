@@ -93,7 +93,7 @@ elif [ "$1" = "disable" ]; then
 	$DEBUG echo Created $DONTRUN due to disable command
 fi
 # If the statefile is too old remove the $PID and start a new puppet, if this hasn't been done before
-if [ -f $STATE ] && find $STATE -mmin +$MAXSTATE | grep -q $STATE; then
+if [ -f $STATE ] && find $STATE -mmin +$MAXSTATE | fgrep -q $STATE; then
 	if [ ! -f $OLDSTATE ]; then
 		RMPUPPET=true
 		START=true
@@ -111,12 +111,12 @@ if [ -f $DONTRUN ]; then
 	RMPUPPET=true
 	$DEBUG echo $DONTRUN found, PID removal scheduled
 	# If $LOCK expired remove it
-	if [ -f $LOCK ] && find $LOCK -mmin +$MAXLOCK | grep -q $LOCK; then
+	if [ -f $LOCK ] && find $LOCK -mmin +$MAXLOCK | fgrep -q $LOCKFILE; then
 		RMLOCK=true
 		$DEBUG echo $LOCK is older than $MAXLOCK, lock removal scheduled
 	fi
 # If $LOCK expired remove everything and restart
-elif [ -f $LOCK ] && find $LOCK -mmin +$MAXLOCK | grep -q $LOCK; then
+elif [ -f $LOCK ] && find $LOCK -mmin +$MAXLOCK | fgrep -q $LOCKFILE; then
 	RMPUPPET=true
 	RMLOCK=true
 	START=true
@@ -127,9 +127,9 @@ elif [ -f $RELOAD ]; then
 	START=true
 	$DEBUG echo $RELOAD found, PID removal and restart scheduled
 # If $PID doesn't exist start a new puppet
-elif [ ! -f $PID ]; then
+elif [ ! -f $PUPPETFILE ]; then
 	START=true
-	$DEBUG echo No $PID found, restart scheduled
+	$DEBUG echo No $PUPPETFILE found, restart scheduled
 fi
 
 setstart()
