@@ -175,6 +175,7 @@ for p in `ps ax -o pid,command | awk '/puppet[ ]agent/ { print $1 }'`; do
 	$DEBUG echo -n "Checking process $p for validity: "
 	if [ $p != $PUPPETPID -a $p != $LOCKPID ]; then
 		$NORELOAD echo Killing $p as it is not associated with a pid or lock file.
+		$NORELOAD ps up $p
 		kill -9 $p
 	else
 		$DEBUG echo $p is valid
