@@ -170,7 +170,7 @@ if [ -f $LOCK ] && $RMLOCK; then
 	LOCKPID=1
 fi
 # Kill all puppetds that are not in the $PID or $LOCK file
-for APID in `ps ax -o pid,command | awk '/puppet[ ]agent/ { print $1}'`; do
+for APID in `ps ax -o pid,command | awk '/puppet[ ]agent/ { print $1 }'`; do
 	$DEBUG echo -n "Checking process $APID for validity: "
 	if [ $APID != $PUPPETPID -a $APID != $LOCKPID ]; then
 		echo Killing $APID as it is not associated with a pid or lock file.
