@@ -1,3 +1,9 @@
+checkpuppet (1.0-1KUMIRELEASE3) unstable; urgency=low
+
+  * Correct wrongly named variables and add missing quotes.
+
+ -- Ed Schouten <ed@kumina.nl>  Wed, 11 May 2011 11:40:18 +0200
+
 checkpuppet (1.0-1KUMIRELEASE2) unstable; urgency=low
 
   * Massive cleanups to the script.
