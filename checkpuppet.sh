@@ -186,8 +186,7 @@ if $START; then
 	$DEBUG echo Start scheduled, restarting puppet
 	# If the restart was not scheduled it should trigger an email
 	$NORELOAD echo "Restarting puppet on `hostname -f`!!"
-	if [ $NORELOAD = '' ]
-	then
+	if [ "$NORELOAD" = '' ]; then
 		/etc/init.d/puppet restart
 	else
 		/etc/init.d/puppet restart > /dev/null
