@@ -59,13 +59,14 @@ dumpdebug() {
 	if [ -f $LOCKFILE ]; then
 		LOCKPID=`cat $LOCKFILE`
 	fi
-	echo --- Current situation ---
+	echo --- Begin debug output ---
 	echo Running puppets:
 	pgrep puppet || echo "none running"
 	if [ $PUPPETPID = 1 ]; then echo PUPPETPID = none; else echo PUPPETPID = $PUPPETPID; fi
 	if [ $LOCKPID = 1 ]; then echo LOCKPID = none; else echo LOCKPID = $LOCKPID; fi
 	if [ -f $DONTRUN ]; then echo DONTRUN exists; else echo DONTRUN doesn\'t exist; fi
 	if [ -f $RELOAD ]; then echo RELOAD exists; else echo RELOAD doesn\'t exist; fi
+	echo --- End debug output ---
 }
 
 dumpdebug
