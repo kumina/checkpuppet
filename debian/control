@@ -6,6 +6,7 @@ Build-Depends: debhelper (>= 5), build-essential
 
 Package: checkpuppet
 Architecture: any
+Recommends: puppet (>= 2.6.0)
 Description: Safety belt to automatically restart puppet
  The checkpuppet script can be used to kill and restart puppet instances
  when needed.
