@@ -1,3 +1,9 @@
+checkpuppet (1.0-1KUMIRELEASE12) unstable; urgency=low
+
+  * Only kill Ruby processes
+
+ -- Ed Schouten <ed@kumina.nl>  Wed, 25 May 2011 11:59:36 +0200
+
 checkpuppet (1.0-1KUMIRELEASE11) unstable; urgency=low
 
   * Add forgotten cron file.
