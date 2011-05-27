@@ -173,7 +173,7 @@ fi
 # Kill all puppetds that are not in the $PID or $LOCK file
 for p in `ps ax -o pid,command | awk '/ruby.* .*puppet[ ]agent/ { print $1 }'`; do
 	$DEBUG echo -n "Checking process $p for validity: "
-	if [ $p != "$PUPPETPID" -a $p != "$LOCKPID" -a "`ps ho ppid $p`" != "$LOCKPID" ]; then
+	if [ $p -ne "$PUPPETPID" -a $p -ne "$LOCKPID" -a "`ps ho ppid $p`" -ne "$LOCKPID" ]; then
 		$NORELOAD echo Killing $p as it is not associated with a pid or lock file.
 		$NORELOAD echo PID: $PUPPETPID
 		$NORELOAD echo LOCK: $LOCKPID
