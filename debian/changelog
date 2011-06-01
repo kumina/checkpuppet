@@ -1,3 +1,9 @@
+checkpuppet (1.0-1KUMIRELEASE14) unstable; urgency=low
+
+  * Add complete ps aux to aid debugging.
+
+ -- Ed Schouten <ed@kumina.nl>  Fri, 27 May 2011 9:25:16 +0200
+
 checkpuppet (1.0-1KUMIRELEASE13) unstable; urgency=low
 
   * Use integer comparison for parent process checks.

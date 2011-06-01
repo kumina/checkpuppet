@@ -180,6 +180,7 @@ for p in `ps ax -o pid,command | awk '/ruby.* .*puppet[ ]agent/ { print $1 }'`; 
 		$NORELOAD ps up $p
 		$NORELOAD ps o ppid $p
 		$NORELOAD ps up `ps ho ppid $p`
+		$NORELOAD ps aux
 		kill -9 $p
 	else
 		$DEBUG echo $p is valid
