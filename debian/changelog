@@ -1,3 +1,9 @@
+checkpuppet (1.0-1KUMIRELEASE15) unstable; urgency=low
+
+  * Kill the processes before performing a restart.
+
+ -- Ed Schouten <ed@kumina.nl>  Fri, 3 Jun 2011 10:35:46 +0200
+
 checkpuppet (1.0-1KUMIRELEASE14) unstable; urgency=low
 
   * Add complete ps aux to aid debugging.
