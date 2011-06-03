@@ -11,7 +11,7 @@ STATE=/var/lib/puppet/state/state.yaml
 if [ -f $PUPPETFILE ]; then
 	PUPPETPID=`cat $PUPPETFILE`
 else
-	PUPPETPID=1
+	PUPPETPID=0
 fi
 # The puppetd lock file
 LOCKFILE=/var/lib/puppet/state/puppetdlock
@@ -19,7 +19,7 @@ LOCKFILE=/var/lib/puppet/state/puppetdlock
 if [ -f $LOCKFILE ]; then
 	LOCKPID=`cat $LOCKFILE`
 else
-	LOCKPID=1
+	LOCKPID=0
 fi
 # Create this file if you don't want puppet to run
 DONTRUN=/etc/puppet/dontrunpuppetd
@@ -162,18 +162,18 @@ fi
 if $RMPUPPET; then
 	$DEBUG echo $PUPPETFILE removal is scheduled, deleting $PUPPETFILE
 	rm -f $PUPPETFILE
-	PUPPETPID=1
+	PUPPETPID=0
 fi
 # Remove the $LOCKFILE if needed
 if $RMLOCK; then
 	$DEBUG echo $LOCKFILE removal is scheduled, deleting $LOCKFILE
 	rm -f $LOCKFILE
-	LOCKPID=1
+	LOCKPID=0
 fi
 # Kill all puppetds that are not in the $PID or $LOCK file
 for p in `ps ax -o pid,command | awk '/ruby.* .*puppet[ ]agent/ { print $1 }'`; do
 	$DEBUG echo -n "Checking process $p for validity: "
-	if [ $p -ne "$PUPPETPID" -a $p -ne "$LOCKPID" -a "`ps ho ppid $p`" -ne "$LOCKPID" ]; then
+	if [ $p -ne "$PUPPETPID" -a $p -ne "$LOCKPID" -a "`ps ho ppid $p`0" -ne "${LOCKPID}0" ]; then
 		$NORELOAD echo Killing $p as it is not associated with a pid or lock file.
 		$NORELOAD echo PID: $PUPPETPID
 		$NORELOAD echo LOCK: $LOCKPID
@@ -192,7 +192,6 @@ if $START; then
 	# If the restart was not scheduled it should trigger an email
 	$NORELOAD echo "Restarting puppet on `hostname -f`!!"
 	# Ensure that a restart leaves no stale processes behind
-	kill $PUPPETPID $LOCKPID 2> /dev/null
 	if [ "$NORELOAD" = '' ]
 	then
 		/etc/init.d/puppet restart
