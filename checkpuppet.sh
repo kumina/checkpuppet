@@ -37,6 +37,8 @@ MAXLOCK=60
 MAXSTOPTIME=60
 # The maximum age (in minutes) a statefile is allowed to have before puppet is restarted
 MAXSTATE=360
+# Set the oom_adj for the process to this, to ensure oom-killer kills puppet before anything else
+OOM_ADJ=5
 # Load custom timers
 if [ -f /etc/default/checkpuppet ]; then
 	. /etc/default/checkpuppet
@@ -71,7 +73,7 @@ dumpdebug() {
 	echo --- End debug output ---
 }
 
-$DEBUG dumpdebug
+dumpdebug
 
 removestale() {
 	if ! kill -s 0 $1
@@ -184,6 +186,9 @@ for p in `ps ax -o pid,command | awk '/ruby.* .*puppet[ ]agent/ { print $1 }'`; 
 		kill -9 $p
 	else
 		$DEBUG echo $p is valid
+		if [ `cat /proc/$p/oom_adj` -ne $OOM_ADJ ]; then
+			echo $OOM_ADJ > /proc/$p/oom_adj
+		fi
 	fi
 done
 # Start puppet if needed
