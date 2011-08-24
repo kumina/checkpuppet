@@ -71,7 +71,7 @@ dumpdebug() {
 	echo --- End debug output ---
 }
 
-dumpdebug
+$DEBUG dumpdebug
 
 removestale() {
 	if ! kill -s 0 $1
