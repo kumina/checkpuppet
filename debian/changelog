@@ -1,3 +1,9 @@
+checkpuppet (1.2-KUMIRELEASE2) stable; urgency=low
+
+  * Remove even more output (this time caused by a mistake in the code).
+
+ -- Tim Stoop <tim@kumina.nl>  Thu, 29 Dec 2011 13:51:18 +0100
+
 checkpuppet (1.2-KUMIRELEASE1) stable; urgency=low
 
   * Remove even more output.
