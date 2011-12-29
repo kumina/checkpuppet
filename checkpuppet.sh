@@ -39,14 +39,14 @@ MAXSTOPTIME=60
 MAXSTATE=360
 # Set the oom_adj for the process to this, to ensure oom-killer kills puppet before anything else
 OOM_ADJ=5
+# Set to empty to enable debug output, : otherwise
+DEBUG=:
+# Don't print these messages when reloading, set to empty to print messages
+NORELOAD=:
 # Load custom timers
 if [ -f /etc/default/checkpuppet ]; then
 	. /etc/default/checkpuppet
 fi
-# Set to empty to enable debug output, : otherwise
-DEBUG=:
-# Don't print these messages when reloading
-NORELOAD=
 # Set to true to remove $PUPPETFILE
 RMPUPPET=false
 # Set to true to remove $LOCKFILE

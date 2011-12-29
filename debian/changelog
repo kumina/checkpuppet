@@ -1,3 +1,10 @@
+checkpuppet (1.2-KUMIRELEASE0) stable; urgency=low
+
+  * Bring the Kumina release back in the version.
+  * Don't output anything by default.
+
+ -- Tim Stoop <tim@kumina.nl>  Thu, 29 Dec 2011 12:33:07 +0100
+
 checkpuppet (1.1) stable; urgency=low
 
   * Allow setting of oom_adj, since puppetd sometime uses a huge amount of memory.
