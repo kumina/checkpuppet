@@ -186,7 +186,7 @@ for p in `ps ax -o pid,command | awk '/ruby.* .*puppet[ ]agent/ { print $1 }'`; 
 		kill -9 $p
 	else
 		$DEBUG echo $p is valid
-		if [ -f /proc/$p/oom_adj && `cat /proc/$p/oom_adj` -ne $OOM_ADJ ]; then
+		if [ -f /proc/$p/oom_adj ] && [ `cat /proc/$p/oom_adj` -ne $OOM_ADJ ]; then
 			echo $OOM_ADJ > /proc/$p/oom_adj
 		fi
 	fi
