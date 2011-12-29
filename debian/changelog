@@ -1,3 +1,9 @@
+checkpuppet (1.2-KUMIRELEASE1) stable; urgency=low
+
+  * Remove even more output.
+
+ -- Tim Stoop <tim@kumina.nl>  Thu, 29 Dec 2011 13:11:01 +0100
+
 checkpuppet (1.2-KUMIRELEASE0) stable; urgency=low
 
   * Bring the Kumina release back in the version.
